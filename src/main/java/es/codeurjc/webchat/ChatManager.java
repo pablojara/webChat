@@ -24,7 +24,7 @@ public class ChatManager {
 			throw new IllegalArgumentException("There is already a user with name \'"
 					+ user.getName() + "\'");
 		} else {
-			users.put(user.getName(), user);
+			users.putIfAbsent(user.getName(), user);
 		}
 	}
 
@@ -39,7 +39,7 @@ public class ChatManager {
 			return chats.get(name);
 		} else {
 			Chat newChat = new Chat(this, name);
-			chats.put(name, newChat);
+			chats.putIfAbsent(name, newChat);
 			
 			for(User user : users.values()){
 				user.newChat(newChat);

@@ -26,8 +26,6 @@ import es.codeurjc.webchat.User;
 
 public class ChatManagerTest1 {
 
-	
-	
 	public class threadExecTask
 	implements Supplier<String>, Callable<String> {
 
@@ -59,7 +57,7 @@ public class ChatManagerTest1 {
 			// TODO Auto-generated method stub
 			return null;
 		}
-}
+	}
 	
 	@Test
 	public void improvement() throws InterruptedException, TimeoutException, ExecutionException {
