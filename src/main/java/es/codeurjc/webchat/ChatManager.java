@@ -4,9 +4,17 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorCompletionService;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
+
+import es.codeurjc.webchat.Chat.sendMessageTask;
 
 public class ChatManager {
 
@@ -14,6 +22,54 @@ public class ChatManager {
 	private Map<String, User> users = new ConcurrentHashMap<>();
 	private int maxChats;
 
+	public class newChatTask
+	implements Supplier<String>, Callable<String> {
+
+		public Chat chat;
+		public User user;
+		
+		public newChatTask(Chat chat, User user) {
+			this.chat = chat;
+			this.user = user;
+		}
+		
+		@Override
+		public String call()  throws InterruptedException, TimeoutException {
+			user.newChat(chat);
+			return null;
+		}
+
+		@Override
+		public String get() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+	}
+	
+	public class closedChatTask
+	implements Supplier<String>, Callable<String> {
+
+		public Chat chat;
+		public User user;
+		
+		public closedChatTask(Chat chat, User user) {
+			this.chat = chat;
+			this.user = user;
+		}
+		
+		@Override
+		public String call()  throws InterruptedException, TimeoutException {
+			user.chatClosed(chat);
+			return null;
+		}
+
+		@Override
+		public String get() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+	}
+	
 	public ChatManager(int maxChats) {
 		this.maxChats = maxChats;
 	}
@@ -41,8 +97,10 @@ public class ChatManager {
 			Chat newChat = new Chat(this, name);
 			chats.putIfAbsent(name, newChat);
 			
+			ExecutorService executor = Executors.newFixedThreadPool(10);
+			CompletionService<String> completionService = new ExecutorCompletionService<>(executor);
 			for(User user : users.values()){
-				user.newChat(newChat);
+				completionService.submit(new newChatTask(newChat, user));
 			}
 
 			return newChat;
@@ -56,8 +114,10 @@ public class ChatManager {
 					+ chat.getName() + "\'");
 		}
 
+		ExecutorService executor = Executors.newFixedThreadPool(10);
+		CompletionService<String> completionService = new ExecutorCompletionService<>(executor);
 		for(User user : users.values()){
-			user.chatClosed(removedChat);
+			completionService.submit(new closedChatTask(removedChat, user));
 		}
 	}
 

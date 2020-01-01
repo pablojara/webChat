@@ -21,7 +21,7 @@ public class Chat {
 
 	private ChatManager chatManager;
 
-	public class threadExecTask
+	public class sendMessageTask
 	implements Supplier<String>, Callable<String> {
 
 		public Chat chat;
@@ -29,7 +29,7 @@ public class Chat {
 		public User receiver;
 		public String message;
 		
-		public threadExecTask(Chat chat, User sender, User receiver, String message) {
+		public sendMessageTask(Chat chat, User sender, User receiver, String message) {
 			this.chat = chat;
 			this.sender = sender;
 			this.receiver = receiver;
@@ -39,6 +39,58 @@ public class Chat {
 		@Override
 		public String call()  throws InterruptedException, TimeoutException {
 			receiver.newMessage(chat, sender, message);
+			return null;
+		}
+
+		@Override
+		public String get() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+	}
+	
+	public class newUserInChatTask
+	implements Supplier<String>, Callable<String> {
+
+		public Chat chat;
+		public User newUser;
+		public User receiver;
+		
+		public newUserInChatTask(Chat chat, User newUser, User receiver) {
+			this.chat = chat;
+			this.newUser = newUser;
+			this.receiver = receiver;
+		}
+		
+		@Override
+		public String call()  throws InterruptedException, TimeoutException {
+			receiver.newUserInChat(chat, newUser);
+			return null;
+		}
+
+		@Override
+		public String get() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+	}
+	
+	public class userExitedFromChatTask
+	implements Supplier<String>, Callable<String> {
+
+		public Chat chat;
+		public User exitedUser;
+		public User receiver;
+		
+		public userExitedFromChatTask(Chat chat, User exitedUser, User receiver) {
+			this.chat = chat;
+			this.exitedUser = exitedUser;
+			this.receiver = receiver;
+		}
+		
+		@Override
+		public String call()  throws InterruptedException, TimeoutException {
+			receiver.userExitedFromChat(chat, exitedUser);
 			return null;
 		}
 
@@ -60,17 +112,22 @@ public class Chat {
 
 	public void addUser(User user) {
 		users.putIfAbsent(user.getName(), user);
+		
+		ExecutorService executor = Executors.newFixedThreadPool(10);
+		CompletionService<String> completionService = new ExecutorCompletionService<>(executor);
 		for(User u : users.values()){
 			if (u != user) {
-				u.newUserInChat(this, user);
+			completionService.submit(new newUserInChatTask(this, user, u));
 			}
 		}
 	}
 
 	public void removeUser(User user) {
 		users.remove(user.getName());
+		ExecutorService executor = Executors.newFixedThreadPool(10);
+		CompletionService<String> completionService = new ExecutorCompletionService<>(executor);
 		for(User u : users.values()){
-			u.userExitedFromChat(this, user);
+			completionService.submit(new userExitedFromChatTask(this, user, u));
 		}
 	}
 
@@ -86,8 +143,7 @@ public class Chat {
 		ExecutorService executor = Executors.newFixedThreadPool(10);
 		CompletionService<String> completionService = new ExecutorCompletionService<>(executor);
 		for(User u : users.values()){
-			completionService.submit(new threadExecTask(this, user, u, message));
-			u.newMessage(this, user, message);
+			completionService.submit(new sendMessageTask(this, user, u, message));
 		}
 	}
 
