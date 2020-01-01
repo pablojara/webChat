@@ -28,7 +28,7 @@ public class ChatManagerTest1 {
 
 	
 	
-	public static class threadExecTask
+	public class threadExecTask
 	implements Supplier<String>, Callable<String> {
 
 		public ChatManager chatManager;
