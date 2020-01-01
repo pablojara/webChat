@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+Built-By: pabl0
+Build-Jdk: 11.0.5
+Implementation-Title: webchat
+Implementation-Version: 0.0.1-SNAPSHOT
+Implementation-Vendor-Id: es.codeurjc
+Implementation-Vendor: Pivotal Software, Inc.
+Implementation-URL: http://projects.spring.io/spring-boot/webchat/
+Created-By: Maven Integration for Eclipse
+
